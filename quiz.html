@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
 <title>Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +22,7 @@
     --good: #3fb950;
     --bad: #f85149;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     background: var(--bg);
@@ -31,21 +33,11 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap {
-    width: 100%;
-    max-width: 560px;
-  }
-  header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  h1 {
-    font-size: 28px;
-    font-weight: 800;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
+  .wrap { width: 100%; max-width: 560px; }
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
   h1 span { color: var(--accent); font-style: italic; }
   .session-meta {
     font-family: 'JetBrains Mono', monospace;
@@ -53,15 +45,46 @@
     color: var(--mute);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin-top: 6px;
+    margin-top: 4px;
+  }
+
+  .progress-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .progress-row .pct { color: var(--accent); font-weight: 600; }
+  .progress-track {
+    background: var(--panel-2);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 3px;
+    transition: width 0.4s ease;
   }
 
   .card {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
   }
   .card-label {
     font-family: 'JetBrains Mono', monospace;
@@ -80,21 +103,27 @@
     padding: 12px 14px;
     font-family: 'Fraunces', serif;
     font-size: 17px;
+    -webkit-appearance: none;
+    appearance: none;
   }
   .name-input:focus { outline: none; border-color: var(--accent); }
 
+  .qtitle {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 15px;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
   .qtext {
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.4;
     margin-bottom: 18px;
     font-weight: 600;
   }
 
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
   .option {
     display: flex;
     align-items: center;
@@ -110,11 +139,11 @@
     text-align: left;
     font-family: inherit;
     width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    line-height: 1.35;
   }
-  .option:hover {
-    border-color: var(--accent-2);
-    background: rgba(88, 166, 255, 0.08);
-  }
+  .option:active { transform: scale(0.99); }
   .option.selected {
     border-color: var(--accent);
     background: rgba(240, 168, 48, 0.12);
@@ -126,7 +155,7 @@
     min-width: 24px;
     font-size: 15px;
   }
-  .option.selected .option-letter { color: var(--accent); }
+  .option-text { flex: 1; }
 
   .submit-btn {
     width: 100%;
@@ -141,8 +170,10 @@
     cursor: pointer;
     margin-top: 8px;
     letter-spacing: -0.01em;
+    -webkit-appearance: none;
+    appearance: none;
   }
-  .submit-btn:hover { filter: brightness(1.05); }
+  .submit-btn:active { transform: scale(0.99); }
   .submit-btn:disabled {
     background: var(--panel-2);
     color: var(--mute);
@@ -154,16 +185,13 @@
     padding: 30px 20px;
     font-size: 18px;
   }
-  .status.success {
-    color: var(--good);
-  }
-  .status.error {
-    color: var(--bad);
-  }
+  .status.success { color: var(--good); }
+  .status.error { color: var(--bad); }
   .status .icon {
     font-size: 60px;
     margin-bottom: 12px;
     display: block;
+    line-height: 1;
   }
   .status .sub {
     color: var(--mute);
@@ -171,6 +199,24 @@
     font-family: 'JetBrains Mono', monospace;
     margin-top: 12px;
   }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--accent-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
 
   .loading {
     text-align: center;
@@ -178,6 +224,40 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
     padding: 30px;
+  }
+
+  .review {
+    background: var(--panel);
+    border: 1px solid var(--good);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+  .review h3 {
+    margin: 0 0 14px;
+    color: var(--good);
+    font-size: 18px;
+  }
+  .review-item {
+    background: var(--panel-2);
+    border-left: 3px solid var(--mute);
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .review-item .qid {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .review-item .ans {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 4px;
   }
 
   .config {
@@ -199,6 +279,8 @@
     padding: 8px 10px;
     font-family: inherit;
     font-size: 12px;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .footer {
@@ -224,23 +306,29 @@
   </div>
 
   <div id="content">
-    <div class="loading">Loading question…</div>
+    <div class="loading">Loading quiz…</div>
   </div>
 
   <div class="footer">Maytham Al-Jubori · Baghdad Medical City Hospital</div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
   const params = new URLSearchParams(location.search);
   const sessionId = params.get('s');
-  const questionId = params.get('q') || 'Q1';
   let API_URL = localStorage.getItem('mcq_api') || '';
 
-  // Save name across questions
-  const savedName = localStorage.getItem('mcq_student_name') || '';
-
+  // State
+  let allQuestions = [];     // [{questionId, question, options}, ...]
+  let quizTitle = '';
+  let currentIdx = 0;        // Index into allQuestions
   let selectedAnswer = null;
-  let currentQuestion = null;
+  let studentName = localStorage.getItem('mcq_student_name') || '';
+  let nameLocked = false;    // True after first successful submit
+  let myAnswers = [];        // [{questionId, answer}, ...] for review at end
+
+  // ---------- Boot ----------
 
   if (!API_URL) {
     document.getElementById('configBox').style.display = 'block';
@@ -248,7 +336,7 @@
       API_URL = e.target.value.trim();
       localStorage.setItem('mcq_api', API_URL);
       document.getElementById('configBox').style.display = 'none';
-      loadQuestion();
+      bootQuiz();
     });
   }
 
@@ -260,62 +348,120 @@
         <div class="sub">Scan the QR code from your instructor.</div>
       </div>`;
   } else {
-    document.getElementById('sessionMeta').textContent = `${sessionId} · ${questionId}`;
-    if (API_URL) loadQuestion();
+    document.getElementById('sessionMeta').textContent = sessionId;
+    if (API_URL) bootQuiz();
   }
 
-  async function loadQuestion() {
+  // ---------- Network helper (iPhone-safe) ----------
+
+  async function apiCall(action, extraParams) {
+    const qs = new URLSearchParams({ action: action, _: Date.now() });
+    if (extraParams) {
+      Object.keys(extraParams).forEach(k => {
+        if (extraParams[k] != null) qs.append(k, extraParams[k]);
+      });
+    }
+    const url = API_URL + (API_URL.indexOf('?') === -1 ? '?' : '&') + qs.toString();
+    const r = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      redirect: 'follow'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch (e) { throw new Error('Invalid JSON response'); }
+  }
+
+  // ---------- Quiz boot ----------
+
+  async function bootQuiz() {
     if (!API_URL || !sessionId) return;
     const content = document.getElementById('content');
-    content.innerHTML = '<div class="loading">Loading question…</div>';
+    content.innerHTML = '<div class="loading">Loading questions…</div>';
     try {
-      const url = `${API_URL}?action=getQuestion&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(questionId)}`;
-      const r = await fetch(url);
-      const d = await r.json();
+      const d = await apiCall('getAllQuestions', { sessionId: sessionId });
       if (!d.ok) {
         content.innerHTML = `
           <div class="status error">
             <span class="icon">⚠</span>
-            <div>Question not found</div>
+            <div>Quiz not found</div>
             <div class="sub">${escapeHtml(d.error || 'Please check with your instructor.')}</div>
           </div>`;
         return;
       }
-      currentQuestion = d;
-      renderQuestion(d);
+      allQuestions = d.questions;
+      quizTitle = d.title || '';
+      if (quizTitle) document.getElementById('sessionMeta').textContent = quizTitle;
+      currentIdx = 0;
+      myAnswers = [];
+      renderCurrentQuestion();
     } catch (e) {
       content.innerHTML = `
         <div class="status error">
           <span class="icon">⚠</span>
           <div>Network error</div>
           <div class="sub">${escapeHtml(e.message)}</div>
+          <button class="submit-btn" style="margin-top:20px;max-width:200px;" onclick="bootQuiz()">Retry</button>
         </div>`;
     }
   }
 
-  function renderQuestion(d) {
+  // ---------- Render question ----------
+
+  function renderCurrentQuestion() {
+    selectedAnswer = null;
+    const q = allQuestions[currentIdx];
+    if (!q) {
+      showFinished();
+      return;
+    }
+
+    const total = allQuestions.length;
+    const pct = Math.round((currentIdx / total) * 100);
     const letters = ['A', 'B', 'C', 'D', 'E'];
+
     let optsHtml = '';
-    d.options.forEach((opt, i) => {
+    q.options.forEach((opt, i) => {
       const L = letters[i];
       optsHtml += `
         <button class="option" type="button" data-letter="${L}" onclick="selectOption('${L}')">
           <span class="option-letter">${L}</span>
-          <span>${escapeHtml(opt)}</span>
+          <span class="option-text">${escapeHtml(opt)}</span>
         </button>`;
     });
 
-    document.getElementById('content').innerHTML = `
+    const nameCard = nameLocked ? '' : `
       <div class="card">
         <div class="card-label">Your name</div>
-        <input type="text" class="name-input" id="studentName" value="${escapeHtml(savedName)}" placeholder="Enter your name" />
+        <input type="text" class="name-input" id="studentName"
+               value="${escapeHtml(studentName)}"
+               placeholder="Enter your name"
+               autocomplete="name"
+               autocapitalize="words" />
+      </div>`;
+
+    document.getElementById('content').innerHTML = `
+      <div class="progress-wrap">
+        <div class="progress-row">
+          <span>Question ${currentIdx + 1} of ${total}</span>
+          <span class="pct">${pct}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
       </div>
+
+      ${nameCard}
+
       <div class="card">
-        <div class="card-label">Question ${questionId}</div>
-        <div class="qtext">${escapeHtml(d.question)}</div>
+        <div class="qtitle">${escapeHtml(q.questionId)}</div>
+        <div class="qtext">${escapeHtml(q.question)}</div>
         <div class="options">${optsHtml}</div>
       </div>
-      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit answer</button>
+      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>
+        ${currentIdx === total - 1 ? 'Submit & finish' : 'Submit & next →'}
+      </button>
     `;
   }
 
@@ -327,58 +473,91 @@
     document.getElementById('submitBtn').disabled = false;
   }
 
+  // ---------- Submit ----------
+
   async function submitAnswer() {
-    const nameEl = document.getElementById('studentName');
-    const name = nameEl.value.trim();
-    if (!name) {
-      nameEl.focus();
-      nameEl.style.borderColor = 'var(--bad)';
-      return;
+    if (!nameLocked) {
+      const nameEl = document.getElementById('studentName');
+      const name = nameEl.value.trim();
+      if (!name) {
+        nameEl.focus();
+        nameEl.style.borderColor = 'var(--bad)';
+        toast('Please enter your name');
+        return;
+      }
+      studentName = name;
+      localStorage.setItem('mcq_student_name', name);
     }
     if (!selectedAnswer) return;
-
-    localStorage.setItem('mcq_student_name', name);
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = 'Submitting…';
 
+    const q = allQuestions[currentIdx];
     try {
-      const url = `${API_URL}?action=submitAnswer&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(questionId)}&studentName=${encodeURIComponent(name)}&answer=${encodeURIComponent(selectedAnswer)}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      if (d.ok) {
-        showSuccess();
-      } else if (d.alreadyAnswered) {
-        showAlreadyAnswered();
+      const d = await apiCall('submitAnswer', {
+        sessionId: sessionId,
+        questionId: q.questionId,
+        studentName: studentName,
+        answer: selectedAnswer
+      });
+
+      if (d.ok || d.alreadyAnswered) {
+        // Either succeeded or already submitted — both let us advance
+        nameLocked = true;
+        myAnswers.push({ questionId: q.questionId, answer: selectedAnswer, alreadyAnswered: !!d.alreadyAnswered });
+        currentIdx++;
+        if (currentIdx >= allQuestions.length) {
+          showFinished();
+        } else {
+          renderCurrentQuestion();
+          if (d.alreadyAnswered) toast('You already answered this — moved on');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       } else {
         btn.disabled = false;
-        btn.textContent = 'Submit answer';
-        alert('Error: ' + (d.error || 'unknown'));
+        btn.textContent = currentIdx === allQuestions.length - 1 ? 'Submit & finish' : 'Submit & next →';
+        toast('Error: ' + (d.error || 'unknown'));
       }
     } catch (e) {
       btn.disabled = false;
-      btn.textContent = 'Submit answer';
-      alert('Network error: ' + e.message);
+      btn.textContent = currentIdx === allQuestions.length - 1 ? 'Submit & finish' : 'Submit & next →';
+      toast('Network error: ' + e.message);
     }
   }
 
-  function showSuccess() {
+  // ---------- Finished view ----------
+
+  function showFinished() {
+    let reviewHtml = '';
+    myAnswers.forEach(a => {
+      reviewHtml += `
+        <div class="review-item">
+          <div class="qid">${escapeHtml(a.questionId)}</div>
+          <div class="ans">Your answer: ${escapeHtml(a.answer)}${a.alreadyAnswered ? ' <span style="color:var(--mute);font-size:11px;">(previously)</span>' : ''}</div>
+        </div>`;
+    });
+
     document.getElementById('content').innerHTML = `
       <div class="status success">
         <span class="icon">✓</span>
-        <div>Answer submitted</div>
-        <div class="sub">Wait for the next question.</div>
+        <div>All done, ${escapeHtml(studentName)}!</div>
+        <div class="sub">${myAnswers.length} answer(s) submitted.</div>
+      </div>
+      <div class="review">
+        <h3>Your answers</h3>
+        ${reviewHtml}
       </div>`;
   }
 
-  function showAlreadyAnswered() {
-    document.getElementById('content').innerHTML = `
-      <div class="status">
-        <span class="icon" style="color:var(--accent-2);">ℹ</span>
-        <div style="color:var(--accent-2);">You already answered this question</div>
-        <div class="sub">Wait for the next question.</div>
-      </div>`;
+  // ---------- Utilities ----------
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
   }
 
   function escapeHtml(s) {
