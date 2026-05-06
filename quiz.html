@@ -317,7 +317,7 @@
 <script>
   const params = new URLSearchParams(location.search);
   const sessionId = params.get('s');
-  let API_URL = localStorage.getItem('mcq_api') || '';
+  let API_URL = localStorage.getItem('mcq_api') || 'https://script.google.com/macros/s/AKfycbxktw4tTsVcc99h71nQ1DEgVFliXr9ZZ_Sit4sL9Wug0ULiIYnopFrqSkNCNmUHSBv2/exec';
 
   // State
   let allQuestions = [];     // [{questionId, question, options}, ...]
