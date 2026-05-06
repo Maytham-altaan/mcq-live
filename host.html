@@ -398,7 +398,7 @@
   let currentQId = params.get('q') || 'Q1';
   let revealed = false;
   let revealedAll = false;  // For overview mode
-  let API_URL = localStorage.getItem('mcq_api') || '';
+  let API_URL = localStorage.getItem('mcq_api') || 'https://script.google.com/macros/s/AKfycbxktw4tTsVcc99h71nQ1DEgVFliXr9ZZ_Sit4sL9Wug0ULiIYnopFrqSkNCNmUHSBv2/exec';
   let questionList = [];    // Discovered from getAllStats
 
   if (!API_URL) {
