@@ -20,7 +20,7 @@
     --good: #3fb950;
     --bad: #f85149;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     background: var(--bg);
@@ -36,16 +36,11 @@
     align-items: flex-end;
     border-bottom: 1px solid var(--line);
     padding-bottom: 16px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 16px;
   }
-  h1 {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
+  h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
   h1 span { color: var(--accent); font-style: italic; }
   .meta {
     font-family: 'JetBrains Mono', monospace;
@@ -74,6 +69,7 @@
     gap: 8px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    align-items: center;
   }
   .nav-controls button {
     background: var(--panel);
@@ -90,6 +86,22 @@
     background: var(--accent);
     color: #1a1a1a;
     border-color: var(--accent);
+  }
+  .nav-controls .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--line);
+    margin: 0 4px;
+  }
+  .nav-controls .overview-btn {
+    background: var(--accent-2);
+    color: #0e1116;
+    border-color: var(--accent-2);
+    font-weight: 600;
+  }
+  .nav-controls .overview-btn.active {
+    background: var(--good);
+    border-color: var(--good);
   }
 
   .question-display {
@@ -108,9 +120,9 @@
     margin-bottom: 8px;
   }
   .qtext {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1.35;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     font-weight: 600;
   }
 
@@ -140,9 +152,7 @@
     font-size: 14px;
     cursor: pointer;
   }
-  .reveal-btn.revealed {
-    background: var(--good);
-  }
+  .reveal-btn.revealed { background: var(--good); }
 
   .bars { display: flex; flex-direction: column; gap: 12px; }
   .bar-row {
@@ -166,7 +176,9 @@
     align-items: center;
     margin-bottom: 8px;
     font-size: 16px;
+    gap: 16px;
   }
+  .bar-head > div:first-child { flex: 1; }
   .bar-letter {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
@@ -178,6 +190,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
     color: var(--mute);
+    white-space: nowrap;
   }
   .bar-track {
     background: var(--panel-2);
@@ -236,6 +249,82 @@
   .resp-pill.revealed.correct .resp-ans { color: var(--good); }
   .resp-pill.revealed.incorrect .resp-ans { color: var(--bad); }
 
+  /* Overview mode — compact card per question */
+  .overview-grid { display: flex; flex-direction: column; gap: 16px; }
+  .ov-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .ov-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ov-qid {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .ov-total {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mute);
+  }
+  .ov-q {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.35;
+  }
+  .ov-bars { display: flex; flex-direction: column; gap: 6px; }
+  .ov-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .ov-bar .L {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+    width: 18px;
+  }
+  .ov-bar .text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ov-bar .track {
+    width: 120px;
+    background: var(--panel-2);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .ov-bar .fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.5s ease;
+  }
+  .ov-bar.correct .L { color: var(--good); }
+  .ov-bar.correct .fill { background: var(--good); }
+  .ov-bar .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mute);
+    width: 60px;
+    text-align: right;
+  }
+
   .config {
     background: var(--panel);
     border: 1px solid var(--line);
@@ -273,30 +362,44 @@
     <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" />
   </div>
 
-  <div class="nav-controls" id="navControls"></div>
-
-  <div class="question-display">
-    <div class="qmeta" id="qMeta">Loading…</div>
-    <div class="qtext" id="qText"></div>
-    <div class="stats-bar">
-      <div class="total"><b id="totalCount">0</b> response(s)</div>
-      <button class="reveal-btn" id="revealBtn" onclick="toggleReveal()">Reveal answer</button>
-    </div>
-    <div class="bars" id="bars"></div>
+  <div class="nav-controls" id="navControls">
+    <button class="overview-btn" data-mode="overview" onclick="switchMode('overview')">Overview · all Qs</button>
+    <span class="divider"></span>
   </div>
 
-  <div class="responders">
-    <h3>Responders</h3>
-    <div class="resp-grid" id="respGrid"><span style="color:var(--mute);font-size:13px;">No answers yet.</span></div>
+  <div id="singleView">
+    <div class="question-display">
+      <div class="qmeta" id="qMeta">Loading…</div>
+      <div class="qtext" id="qText"></div>
+      <div class="stats-bar">
+        <div class="total"><b id="totalCount">0</b> response(s)</div>
+        <button class="reveal-btn" id="revealBtn" onclick="toggleReveal()">Reveal answer</button>
+      </div>
+      <div class="bars" id="bars"></div>
+    </div>
+
+    <div class="responders">
+      <h3>Responders</h3>
+      <div class="resp-grid" id="respGrid"><span style="color:var(--mute);font-size:13px;">No answers yet.</span></div>
+    </div>
+  </div>
+
+  <div id="overviewView" style="display:none;">
+    <div class="overview-grid" id="ovGrid">
+      <div style="color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:13px;text-align:center;padding:40px;">Loading overview…</div>
+    </div>
   </div>
 </div>
 
 <script>
   const params = new URLSearchParams(location.search);
   const sessionId = params.get('s');
+  let mode = params.get('mode') || 'single';   // 'single' | 'overview'
   let currentQId = params.get('q') || 'Q1';
   let revealed = false;
+  let revealedAll = false;  // For overview mode
   let API_URL = localStorage.getItem('mcq_api') || '';
+  let questionList = [];    // Discovered from getAllStats
 
   if (!API_URL) {
     document.getElementById('configBox').style.display = 'block';
@@ -314,21 +417,29 @@
 
   document.getElementById('sessionMeta').textContent = `SESSION ${sessionId}`;
 
-  // Build nav buttons (max 10 questions assumed; extend as needed)
-  const nav = document.getElementById('navControls');
-  for (let i = 1; i <= 10; i++) {
-    const b = document.createElement('button');
-    b.textContent = 'Q' + i;
-    b.dataset.qid = 'Q' + i;
-    b.onclick = () => switchQ('Q' + i);
-    nav.appendChild(b);
+  // ---------- iPhone-safe fetch ----------
+  async function apiCall(action, extraParams) {
+    const qs = new URLSearchParams({ action: action, _: Date.now() });
+    if (extraParams) {
+      Object.keys(extraParams).forEach(k => {
+        if (extraParams[k] != null) qs.append(k, extraParams[k]);
+      });
+    }
+    const url = API_URL + (API_URL.indexOf('?') === -1 ? '?' : '&') + qs.toString();
+    const r = await fetch(url, { method: 'GET', cache: 'no-store', redirect: 'follow' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
   }
-  highlightActive();
 
-  function highlightActive() {
-    [...nav.children].forEach(b => {
-      b.classList.toggle('active', b.dataset.qid === currentQId);
-    });
+  // ---------- Mode + nav ----------
+
+  function switchMode(newMode) {
+    mode = newMode;
+    document.getElementById('singleView').style.display = (mode === 'single') ? '' : 'none';
+    document.getElementById('overviewView').style.display = (mode === 'overview') ? '' : 'none';
+    history.replaceState(null, '', `?s=${sessionId}&mode=${mode}${mode === 'single' ? '&q=' + currentQId : ''}`);
+    highlightActive();
+    tick();
   }
 
   function switchQ(qid) {
@@ -336,9 +447,37 @@
     revealed = false;
     document.getElementById('revealBtn').textContent = 'Reveal answer';
     document.getElementById('revealBtn').classList.remove('revealed');
+    mode = 'single';
+    document.getElementById('singleView').style.display = '';
+    document.getElementById('overviewView').style.display = 'none';
+    history.replaceState(null, '', `?s=${sessionId}&mode=single&q=${qid}`);
     highlightActive();
-    history.replaceState(null, '', `?s=${sessionId}&q=${qid}`);
     tick();
+  }
+
+  function rebuildNavButtons() {
+    const nav = document.getElementById('navControls');
+    // Remove old Q buttons (keep overview button + divider)
+    [...nav.querySelectorAll('button[data-qid]')].forEach(b => b.remove());
+    questionList.forEach(qid => {
+      const b = document.createElement('button');
+      b.textContent = qid;
+      b.dataset.qid = qid;
+      b.onclick = () => switchQ(qid);
+      nav.appendChild(b);
+    });
+    highlightActive();
+  }
+
+  function highlightActive() {
+    const nav = document.getElementById('navControls');
+    nav.querySelectorAll('button').forEach(b => {
+      if (b.dataset.mode === 'overview') {
+        b.classList.toggle('active', mode === 'overview');
+      } else if (b.dataset.qid) {
+        b.classList.toggle('active', mode === 'single' && b.dataset.qid === currentQId);
+      }
+    });
   }
 
   function toggleReveal() {
@@ -346,27 +485,50 @@
     const btn = document.getElementById('revealBtn');
     btn.textContent = revealed ? 'Hide answer' : 'Reveal answer';
     btn.classList.toggle('revealed', revealed);
-    render(lastData);
+    if (lastSingleData) renderSingle(lastSingleData);
   }
 
-  let lastData = null;
+  // ---------- Tick (poll loop) ----------
+
+  let lastSingleData = null;
+  let lastAllData = null;
 
   async function tick() {
     if (!API_URL) return;
     try {
-      const url = `${API_URL}?action=getStats&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(currentQId)}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      if (d.ok) {
-        lastData = d;
-        render(d);
+      // Always fetch all stats — gives us the question list and supports both modes
+      const all = await apiCall('getAllStats', { sessionId: sessionId });
+      if (!all.ok) return;
+      lastAllData = all;
+
+      // Update question list / nav buttons if changed
+      if (JSON.stringify(all.order) !== JSON.stringify(questionList)) {
+        questionList = all.order;
+        rebuildNavButtons();
+      }
+
+      if (mode === 'single') {
+        const q = all.byQuestion[currentQId];
+        if (q) {
+          lastSingleData = {
+            total: q.total,
+            counts: q.counts,
+            responders: q.responders,
+            questionInfo: { question: q.question, options: q.options, correct: q.correct }
+          };
+          renderSingle(lastSingleData);
+        }
+      } else {
+        renderOverview(all);
       }
     } catch (e) {
       // silent — keep retrying
     }
   }
 
-  function render(d) {
+  // ---------- Render: single ----------
+
+  function renderSingle(d) {
     if (!d || !d.questionInfo) {
       document.getElementById('qText').textContent = 'Question not found.';
       return;
@@ -419,13 +581,57 @@
     }
   }
 
+  // ---------- Render: overview ----------
+
+  function renderOverview(all) {
+    const grid = document.getElementById('ovGrid');
+    if (!all.order || all.order.length === 0) {
+      grid.innerHTML = '<div style="color:var(--mute);font-family:JetBrains Mono,monospace;font-size:13px;text-align:center;padding:40px;">No questions yet.</div>';
+      return;
+    }
+    grid.innerHTML = '';
+    const letters = ['A','B','C','D','E'];
+
+    all.order.forEach(qid => {
+      const q = all.byQuestion[qid];
+      if (!q) return;
+
+      let barsHtml = '';
+      q.options.forEach((opt, i) => {
+        const L = letters[i];
+        const c = q.counts[L] || 0;
+        const pct = q.total > 0 ? Math.round((c / q.total) * 100) : 0;
+        const isCorrect = L === q.correct;
+        barsHtml += `
+          <div class="ov-bar ${isCorrect ? 'correct' : ''}">
+            <span class="L">${L}</span>
+            <span class="text">${escapeHtml(opt)}</span>
+            <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+            <span class="num">${c} · ${pct}%</span>
+          </div>`;
+      });
+
+      const card = document.createElement('div');
+      card.className = 'ov-card';
+      card.innerHTML = `
+        <div class="ov-head">
+          <span class="ov-qid">${escapeHtml(qid)} · correct: ${escapeHtml(q.correct || '?')}</span>
+          <span class="ov-total">${q.total} response(s)</span>
+        </div>
+        <div class="ov-q">${escapeHtml(q.question)}</div>
+        <div class="ov-bars">${barsHtml}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
   function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
       '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[c]));
   }
 
-  // Poll every 3 seconds
+  // Initial paint + poll loop
   tick();
   setInterval(tick, 3000);
 </script>
