@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Host Dashboard — Live Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1f262f;
+    --line: #2a313c;
+    --ink: #e6edf3;
+    --mute: #8b949e;
+    --accent: #f0a830;
+    --accent-2: #58a6ff;
+    --good: #3fb950;
+    --bad: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); font-style: italic; }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mute);
+    text-align: right;
+  }
+  .meta .live {
+    color: var(--good);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .nav-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .nav-controls button {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .nav-controls button:hover { border-color: var(--accent); }
+  .nav-controls button.active {
+    background: var(--accent);
+    color: #1a1a1a;
+    border-color: var(--accent);
+  }
+
+  .question-display {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .qmeta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .qtext {
+    font-size: 26px;
+    line-height: 1.35;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .total {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--mute);
+    font-size: 14px;
+  }
+  .total b { color: var(--accent); font-size: 22px; font-family: 'Fraunces', serif; }
+
+  .reveal-btn {
+    background: var(--accent-2);
+    color: #0e1116;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .reveal-btn.revealed {
+    background: var(--good);
+  }
+
+  .bars { display: flex; flex-direction: column; gap: 12px; }
+  .bar-row {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.3s;
+  }
+  .bar-row.correct {
+    border-color: var(--good);
+    background: rgba(63, 185, 80, 0.06);
+  }
+  .bar-row.incorrect {
+    border-color: var(--bad);
+    opacity: 0.7;
+  }
+  .bar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .bar-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+    margin-right: 10px;
+  }
+  .bar-row.correct .bar-letter { color: var(--good); }
+  .bar-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  .bar-track {
+    background: var(--panel-2);
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+  .bar-row.correct .bar-fill { background: var(--good); }
+  .bar-row.incorrect .bar-fill { background: var(--bad); }
+
+  .responders {
+    margin-top: 24px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .responders h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .resp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .resp-pill {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .resp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .resp-ans {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 12px;
+  }
+  .resp-pill.revealed.correct .resp-ans { color: var(--good); }
+  .resp-pill.revealed.incorrect .resp-ans { color: var(--bad); }
+
+  .config {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .config label { color: var(--mute); display: block; margin-bottom: 4px; }
+  .config input {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Live <span>Stats</span></h1>
+    <div class="meta">
+      <div class="live"><span class="live-dot"></span> POLLING EVERY 3s</div>
+      <div id="sessionMeta">—</div>
+    </div>
+  </header>
+
+  <div class="config" id="configBox" style="display:none;">
+    <label>API URL not set — paste your /exec URL:</label>
+    <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+  </div>
+
+  <div class="nav-controls" id="navControls"></div>
+
+  <div class="question-display">
+    <div class="qmeta" id="qMeta">Loading…</div>
+    <div class="qtext" id="qText"></div>
+    <div class="stats-bar">
+      <div class="total"><b id="totalCount">0</b> response(s)</div>
+      <button class="reveal-btn" id="revealBtn" onclick="toggleReveal()">Reveal answer</button>
+    </div>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="responders">
+    <h3>Responders</h3>
+    <div class="resp-grid" id="respGrid"><span style="color:var(--mute);font-size:13px;">No answers yet.</span></div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const sessionId = params.get('s');
+  let currentQId = params.get('q') || 'Q1';
+  let revealed = false;
+  let API_URL = localStorage.getItem('mcq_api') || '';
+
+  if (!API_URL) {
+    document.getElementById('configBox').style.display = 'block';
+    document.getElementById('apiUrl').addEventListener('change', e => {
+      API_URL = e.target.value.trim();
+      localStorage.setItem('mcq_api', API_URL);
+      document.getElementById('configBox').style.display = 'none';
+      tick();
+    });
+  }
+
+  if (!sessionId) {
+    document.body.innerHTML = '<div class="container"><h1>Missing session ID.</h1><p style="color:var(--mute);font-family:JetBrains Mono,monospace;font-size:13px;">Open this page with <code>?s=YOUR_SESSION_ID</code> appended to the URL.</p></div>';
+  }
+
+  document.getElementById('sessionMeta').textContent = `SESSION ${sessionId}`;
+
+  // Build nav buttons (max 10 questions assumed; extend as needed)
+  const nav = document.getElementById('navControls');
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement('button');
+    b.textContent = 'Q' + i;
+    b.dataset.qid = 'Q' + i;
+    b.onclick = () => switchQ('Q' + i);
+    nav.appendChild(b);
+  }
+  highlightActive();
+
+  function highlightActive() {
+    [...nav.children].forEach(b => {
+      b.classList.toggle('active', b.dataset.qid === currentQId);
+    });
+  }
+
+  function switchQ(qid) {
+    currentQId = qid;
+    revealed = false;
+    document.getElementById('revealBtn').textContent = 'Reveal answer';
+    document.getElementById('revealBtn').classList.remove('revealed');
+    highlightActive();
+    history.replaceState(null, '', `?s=${sessionId}&q=${qid}`);
+    tick();
+  }
+
+  function toggleReveal() {
+    revealed = !revealed;
+    const btn = document.getElementById('revealBtn');
+    btn.textContent = revealed ? 'Hide answer' : 'Reveal answer';
+    btn.classList.toggle('revealed', revealed);
+    render(lastData);
+  }
+
+  let lastData = null;
+
+  async function tick() {
+    if (!API_URL) return;
+    try {
+      const url = `${API_URL}?action=getStats&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(currentQId)}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.ok) {
+        lastData = d;
+        render(d);
+      }
+    } catch (e) {
+      // silent — keep retrying
+    }
+  }
+
+  function render(d) {
+    if (!d || !d.questionInfo) {
+      document.getElementById('qText').textContent = 'Question not found.';
+      return;
+    }
+    document.getElementById('qMeta').textContent = currentQId;
+    document.getElementById('qText').textContent = d.questionInfo.question;
+    document.getElementById('totalCount').textContent = d.total || 0;
+
+    const letters = ['A','B','C','D','E'];
+    const opts = d.questionInfo.options;
+    const counts = d.counts || {};
+    const total = d.total || 0;
+    const correct = d.questionInfo.correct;
+
+    const bars = document.getElementById('bars');
+    bars.innerHTML = '';
+    opts.forEach((opt, i) => {
+      const L = letters[i];
+      const c = counts[L] || 0;
+      const pct = total > 0 ? Math.round((c / total) * 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      if (revealed) {
+        row.classList.add(L === correct ? 'correct' : 'incorrect');
+      }
+      row.innerHTML = `
+        <div class="bar-head">
+          <div><span class="bar-letter">${L}</span>${escapeHtml(opt)}</div>
+          <div class="bar-count">${c} · ${pct}%</div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
+      `;
+      bars.appendChild(row);
+    });
+
+    const grid = document.getElementById('respGrid');
+    if (!d.responders || d.responders.length === 0) {
+      grid.innerHTML = '<span style="color:var(--mute);font-size:13px;">No answers yet.</span>';
+    } else {
+      grid.innerHTML = '';
+      d.responders.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'resp-pill';
+        if (revealed) {
+          div.classList.add('revealed', r.answer === correct ? 'correct' : 'incorrect');
+        }
+        div.innerHTML = `<span class="resp-name">${escapeHtml(r.name)}</span><span class="resp-ans">${escapeHtml(r.answer)}</span>`;
+        grid.appendChild(div);
+      });
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  // Poll every 3 seconds
+  tick();
+  setInterval(tick, 3000);
+</script>
+</body>
+</html>

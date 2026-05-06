@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1f262f;
+    --line: #2a313c;
+    --ink: #e6edf3;
+    --mute: #8b949e;
+    --accent: #f0a830;
+    --accent-2: #58a6ff;
+    --good: #3fb950;
+    --bad: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 560px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); font-style: italic; }
+  .session-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .name-input {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+  }
+  .name-input:focus { outline: none; border-color: var(--accent); }
+
+  .qtext {
+    font-size: 22px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+    font-weight: 600;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel-2);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+    color: var(--ink);
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
+  }
+  .option:hover {
+    border-color: var(--accent-2);
+    background: rgba(88, 166, 255, 0.08);
+  }
+  .option.selected {
+    border-color: var(--accent);
+    background: rgba(240, 168, 48, 0.12);
+  }
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 24px;
+    font-size: 15px;
+  }
+  .option.selected .option-letter { color: var(--accent); }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #1a1a1a;
+    border: none;
+    padding: 16px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  .submit-btn:hover { filter: brightness(1.05); }
+  .submit-btn:disabled {
+    background: var(--panel-2);
+    color: var(--mute);
+    cursor: not-allowed;
+  }
+
+  .status {
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 18px;
+  }
+  .status.success {
+    color: var(--good);
+  }
+  .status.error {
+    color: var(--bad);
+  }
+  .status .icon {
+    font-size: 60px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .status .sub {
+    color: var(--mute);
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px;
+  }
+
+  .loading {
+    text-align: center;
+    color: var(--mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 30px;
+  }
+
+  .config {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .config label { color: var(--mute); display: block; margin-bottom: 6px; }
+  .config input {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 12px;
+  }
+
+  .footer {
+    margin-top: 30px;
+    text-align: center;
+    color: var(--mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Live <span>Quiz</span></h1>
+    <div class="session-meta" id="sessionMeta">—</div>
+  </header>
+
+  <div class="config" id="configBox" style="display:none;">
+    <label>API URL not set — paste your /exec URL:</label>
+    <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading question…</div>
+  </div>
+
+  <div class="footer">Maytham Al-Jubori · Baghdad Medical City Hospital</div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const sessionId = params.get('s');
+  const questionId = params.get('q') || 'Q1';
+  let API_URL = localStorage.getItem('mcq_api') || '';
+
+  // Save name across questions
+  const savedName = localStorage.getItem('mcq_student_name') || '';
+
+  let selectedAnswer = null;
+  let currentQuestion = null;
+
+  if (!API_URL) {
+    document.getElementById('configBox').style.display = 'block';
+    document.getElementById('apiUrl').addEventListener('change', e => {
+      API_URL = e.target.value.trim();
+      localStorage.setItem('mcq_api', API_URL);
+      document.getElementById('configBox').style.display = 'none';
+      loadQuestion();
+    });
+  }
+
+  if (!sessionId) {
+    document.getElementById('content').innerHTML = `
+      <div class="status error">
+        <span class="icon">⚠</span>
+        <div>Missing session ID</div>
+        <div class="sub">Scan the QR code from your instructor.</div>
+      </div>`;
+  } else {
+    document.getElementById('sessionMeta').textContent = `${sessionId} · ${questionId}`;
+    if (API_URL) loadQuestion();
+  }
+
+  async function loadQuestion() {
+    if (!API_URL || !sessionId) return;
+    const content = document.getElementById('content');
+    content.innerHTML = '<div class="loading">Loading question…</div>';
+    try {
+      const url = `${API_URL}?action=getQuestion&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(questionId)}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      if (!d.ok) {
+        content.innerHTML = `
+          <div class="status error">
+            <span class="icon">⚠</span>
+            <div>Question not found</div>
+            <div class="sub">${escapeHtml(d.error || 'Please check with your instructor.')}</div>
+          </div>`;
+        return;
+      }
+      currentQuestion = d;
+      renderQuestion(d);
+    } catch (e) {
+      content.innerHTML = `
+        <div class="status error">
+          <span class="icon">⚠</span>
+          <div>Network error</div>
+          <div class="sub">${escapeHtml(e.message)}</div>
+        </div>`;
+    }
+  }
+
+  function renderQuestion(d) {
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+    let optsHtml = '';
+    d.options.forEach((opt, i) => {
+      const L = letters[i];
+      optsHtml += `
+        <button class="option" type="button" data-letter="${L}" onclick="selectOption('${L}')">
+          <span class="option-letter">${L}</span>
+          <span>${escapeHtml(opt)}</span>
+        </button>`;
+    });
+
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <div class="card-label">Your name</div>
+        <input type="text" class="name-input" id="studentName" value="${escapeHtml(savedName)}" placeholder="Enter your name" />
+      </div>
+      <div class="card">
+        <div class="card-label">Question ${questionId}</div>
+        <div class="qtext">${escapeHtml(d.question)}</div>
+        <div class="options">${optsHtml}</div>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit answer</button>
+    `;
+  }
+
+  function selectOption(letter) {
+    selectedAnswer = letter;
+    document.querySelectorAll('.option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.letter === letter);
+    });
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  async function submitAnswer() {
+    const nameEl = document.getElementById('studentName');
+    const name = nameEl.value.trim();
+    if (!name) {
+      nameEl.focus();
+      nameEl.style.borderColor = 'var(--bad)';
+      return;
+    }
+    if (!selectedAnswer) return;
+
+    localStorage.setItem('mcq_student_name', name);
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const url = `${API_URL}?action=submitAnswer&sessionId=${encodeURIComponent(sessionId)}&questionId=${encodeURIComponent(questionId)}&studentName=${encodeURIComponent(name)}&answer=${encodeURIComponent(selectedAnswer)}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.ok) {
+        showSuccess();
+      } else if (d.alreadyAnswered) {
+        showAlreadyAnswered();
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Submit answer';
+        alert('Error: ' + (d.error || 'unknown'));
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Submit answer';
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  function showSuccess() {
+    document.getElementById('content').innerHTML = `
+      <div class="status success">
+        <span class="icon">✓</span>
+        <div>Answer submitted</div>
+        <div class="sub">Wait for the next question.</div>
+      </div>`;
+  }
+
+  function showAlreadyAnswered() {
+    document.getElementById('content').innerHTML = `
+      <div class="status">
+        <span class="icon" style="color:var(--accent-2);">ℹ</span>
+        <div style="color:var(--accent-2);">You already answered this question</div>
+        <div class="sub">Wait for the next question.</div>
+      </div>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+</script>
+</body>
+</html>

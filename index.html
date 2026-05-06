@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MCQ Quiz Builder — Maytham Al-Jubori</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1f262f;
+    --line: #2a313c;
+    --ink: #e6edf3;
+    --mute: #8b949e;
+    --accent: #f0a830;
+    --accent-2: #58a6ff;
+    --good: #3fb950;
+    --bad: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+  .container { max-width: 980px; margin: 0 auto; }
+  header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); font-style: italic; }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .config {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .config label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .config input, .config textarea {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .config input:focus, .config textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .title-input {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .title-input input {
+    width: 100%;
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .title-input input:focus { outline: none; }
+
+  .question-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .qnum {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .qtext-input {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    resize: vertical;
+    min-height: 60px;
+  }
+  .qtext-input:focus { outline: none; border-color: var(--accent); }
+
+  .opt-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .opt-row input[type="radio"] {
+    accent-color: var(--good);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .opt-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+    width: 20px;
+  }
+  .opt-input {
+    flex: 1;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+  }
+  .opt-input:focus { outline: none; border-color: var(--accent-2); }
+
+  .delete-q {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--mute);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .delete-q:hover { color: var(--bad); border-color: var(--bad); }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    letter-spacing: -0.01em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #1a1a1a;
+  }
+  .btn-secondary {
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary:hover { border-color: var(--accent); }
+
+  .result {
+    background: var(--panel);
+    border: 1px solid var(--good);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result h2 {
+    margin: 0 0 16px;
+    font-size: 22px;
+    color: var(--good);
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .qr-wrap {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .qr-wrap img, .qr-wrap canvas { display: block; margin: 0 auto; }
+  .links { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .links .link-block {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .links .label {
+    color: var(--mute);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .links a { color: var(--accent-2); text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--mute);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.error { background: rgba(248, 81, 73, 0.1); color: var(--bad); border: 1px solid var(--bad); }
+  .status.info { background: rgba(88, 166, 255, 0.1); color: var(--accent-2); border: 1px solid var(--accent-2); }
+
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 640px) {
+    .result-grid { grid-template-columns: 1fr; }
+    .qr-wrap { max-width: 220px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>MCQ <span>Builder</span></h1>
+    <div class="subtitle">Live quiz · QR code · Real-time stats</div>
+  </header>
+
+  <div class="config">
+    <label>Apps Script /exec URL <small style="text-transform:none;letter-spacing:0;">(saved locally — paste once)</small></label>
+    <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+  </div>
+
+  <div class="title-input">
+    <input id="quizTitle" placeholder="Quiz title — e.g. Clinical Pharmacy Cardiology Review" />
+  </div>
+
+  <div id="questions"></div>
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="addQuestion()">+ Add Question</button>
+    <button class="btn btn-primary" onclick="generateQuiz()">Generate QR &amp; Host Link</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="result" id="result">
+    <h2>✓ Quiz Created</h2>
+    <div class="result-grid">
+      <div>
+        <div class="qr-wrap" id="qrWrap"></div>
+        <div style="margin-top:10px;text-align:center;">
+          <button class="copy-btn" onclick="downloadQR()">Download QR</button>
+        </div>
+      </div>
+      <div class="links">
+        <div class="link-block">
+          <div class="label">Session ID</div>
+          <div id="sessionIdOut"></div>
+        </div>
+        <div class="link-block">
+          <div class="label">Student link <button class="copy-btn" onclick="copyLink('studentLink')">Copy</button></div>
+          <a id="studentLink" href="#" target="_blank"></a>
+        </div>
+        <div class="link-block">
+          <div class="label">Host dashboard <button class="copy-btn" onclick="copyLink('hostLink')">Copy</button></div>
+          <a id="hostLink" href="#" target="_blank"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built by Maytham Al-Jubori · Baghdad Medical City Hospital
+  </div>
+</div>
+
+<script>
+  let questions = [];
+  let API_URL = localStorage.getItem('mcq_api') || '';
+  document.getElementById('apiUrl').value = API_URL;
+  document.getElementById('apiUrl').addEventListener('change', e => {
+    API_URL = e.target.value.trim();
+    localStorage.setItem('mcq_api', API_URL);
+    showStatus('API URL saved.', 'info');
+  });
+
+  function addQuestion() {
+    questions.push({
+      q: '',
+      options: ['', '', '', ''],
+      correct: 'A'
+    });
+    renderQuestions();
+  }
+
+  function deleteQuestion(idx) {
+    questions.splice(idx, 1);
+    renderQuestions();
+  }
+
+  function renderQuestions() {
+    const container = document.getElementById('questions');
+    container.innerHTML = '';
+    questions.forEach((q, i) => {
+      const card = document.createElement('div');
+      card.className = 'question-card';
+      const letters = ['A', 'B', 'C', 'D'];
+      let optsHtml = '';
+      letters.forEach((L, j) => {
+        const checked = q.correct === L ? 'checked' : '';
+        const val = (q.options[j] || '').replace(/"/g, '&quot;');
+        optsHtml += `
+          <div class="opt-row">
+            <input type="radio" name="correct-${i}" value="${L}" ${checked} onchange="setCorrect(${i}, '${L}')" title="Mark as correct"/>
+            <span class="opt-letter">${L}</span>
+            <input type="text" class="opt-input" value="${val}" placeholder="Option ${L}" oninput="setOption(${i}, ${j}, this.value)" />
+          </div>`;
+      });
+      card.innerHTML = `
+        <button class="delete-q" onclick="deleteQuestion(${i})">Delete</button>
+        <div class="qnum">Question ${i + 1}</div>
+        <textarea class="qtext-input" placeholder="Enter the question…" oninput="setQText(${i}, this.value)">${(q.q || '').replace(/</g, '&lt;')}</textarea>
+        ${optsHtml}
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function setQText(idx, val) { questions[idx].q = val; }
+  function setOption(idx, optIdx, val) { questions[idx].options[optIdx] = val; }
+  function setCorrect(idx, letter) { questions[idx].correct = letter; }
+
+  function showStatus(msg, type) {
+    const s = document.getElementById('status');
+    s.textContent = msg;
+    s.className = 'status show ' + type;
+    if (type === 'info') {
+      setTimeout(() => s.classList.remove('show'), 3000);
+    }
+  }
+
+  async function generateQuiz() {
+    if (!API_URL) {
+      showStatus('Please paste the Apps Script /exec URL first.', 'error');
+      return;
+    }
+    const title = document.getElementById('quizTitle').value.trim() || 'Untitled Quiz';
+    if (questions.length === 0) {
+      showStatus('Add at least one question.', 'error');
+      return;
+    }
+    // Validate
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.q.trim()) { showStatus(`Question ${i + 1} is empty.`, 'error'); return; }
+      const filled = q.options.filter(o => o && o.trim() !== '').length;
+      if (filled < 2) { showStatus(`Question ${i + 1} needs at least 2 options.`, 'error'); return; }
+      if (!q.correct) { showStatus(`Mark the correct answer for question ${i + 1}.`, 'error'); return; }
+    }
+
+    showStatus('Creating session…', 'info');
+
+    const payload = JSON.stringify(questions);
+    const url = `${API_URL}?action=createSession&title=${encodeURIComponent(title)}&payload=${encodeURIComponent(payload)}`;
+
+    try {
+      const r = await fetch(url);
+      const d = await r.json();
+      if (!d.ok) {
+        showStatus('Server error: ' + (d.error || 'unknown'), 'error');
+        return;
+      }
+      showResult(d.sessionId);
+    } catch (e) {
+      showStatus('Network error: ' + e.message, 'error');
+    }
+  }
+
+  function showResult(sessionId) {
+    const base = location.href.replace(/\/[^\/]*$/, '/');
+    const studentURL = `${base}quiz.html?s=${sessionId}&q=Q1`;
+    const hostURL = `${base}host.html?s=${sessionId}&q=Q1`;
+
+    document.getElementById('sessionIdOut').textContent = sessionId;
+    const sLink = document.getElementById('studentLink');
+    sLink.textContent = studentURL;
+    sLink.href = studentURL;
+    const hLink = document.getElementById('hostLink');
+    hLink.textContent = hostURL;
+    hLink.href = hostURL;
+
+    const qrWrap = document.getElementById('qrWrap');
+    qrWrap.innerHTML = '';
+    new QRCode(qrWrap, {
+      text: studentURL,
+      width: 180,
+      height: 180,
+      colorDark: '#0e1116',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    document.getElementById('result').classList.add('show');
+    document.getElementById('status').classList.remove('show');
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function copyLink(id) {
+    const txt = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(txt).then(() => {
+      showStatus('Copied to clipboard.', 'info');
+    });
+  }
+
+  function downloadQR() {
+    const canvas = document.querySelector('#qrWrap canvas');
+    const img = document.querySelector('#qrWrap img');
+    let dataURL;
+    if (canvas) dataURL = canvas.toDataURL('image/png');
+    else if (img) dataURL = img.src;
+    else return;
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'quiz-qr.png';
+    a.click();
+  }
+
+  // Start with one blank question
+  addQuestion();
+</script>
+</body>
+</html>
